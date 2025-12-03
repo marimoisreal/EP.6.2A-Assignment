@@ -1,0 +1,16 @@
+﻿@model IEnumerable<EP._6._2A_Assignment.Interfaces.IItemValidating>
+
+<form method="post" asp-action="ApproveSelected">
+    @foreach (var item in Model)
+    {
+        <div class="catalog-item">
+            <input type="checkbox" name="selectedIds" value="@item.Id" />
+    @await Html.PartialAsync(item.GetCardPartial(), item)
+        </div>
+    }
+
+    @if ((bool)(ViewBag.ForApproval ?? false))
+    {
+        <button type="submit">Approve Selected</button>
+    }
+</form>
