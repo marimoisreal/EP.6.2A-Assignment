@@ -1,0 +1,9 @@
+﻿@using EP._6._2A_Assignment.Interfaces
+@model IEnumerable<IItemValidating>
+
+<h2>Preview Imported Data (Not Saved Yet)</h2>
+
+@foreach (var item in Model)
+{
+    @Html.Partial(item.GetCardPartial(), item)
+}

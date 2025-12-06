@@ -1,0 +1,13 @@
+﻿@{
+    ViewBag.Title = "Bulk Import";
+}
+
+<h2>Upload JSON file</h2>
+
+<form method="post" enctype="multipart/form-data">
+    <input type="file" name="file" />
+    <br><br>
+    <textarea name="jsonInput" style="width:400px;height:200px"></textarea>
+    <br><br>
+    <button type="submit">Upload</button>
+</form>
