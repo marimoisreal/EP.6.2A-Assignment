@@ -1,5 +1,6 @@
 ﻿using EP._6._2A_Assignment.Factories;
 using EP._6._2A_Assignment.Interfaces;
+using EP._6._2A_Assignment.Models;
 using EP._6._2A_Assignment.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,21 +8,40 @@ namespace EP._6._2A_Assignment.Controllers
 {
     public class BulkImportController : Controller
     {
-        private readonly ImportItemFactory _factory = new ImportItemFactory();
+        private readonly ImportItemFactory _factory;
 
-        public IActionResult BulkImport() => View();
-
-
-        [HttpPost]
-        public IActionResult BulkImport(IFormFile file, string jsonInput)
+        public BulkImportController(ImportItemFactory factory)
         {
-            string tempJson = @"
-            [
-                {
+            _factory = factory;
+        }
+
+        // GET: show uploading page
+        public IActionResult BulkImport()
+        {
+            return View();
+        }
+
+        // POST: Json processing
+        [HttpPost]
+        public IActionResult BulkImport(IFormFile file, string jsonInput, [FromServices] ItemsInMemoryRepository tempRepo) 
+        {
+            string json = jsonInput;
+
+            // If file not empty - read
+            if (file != null)
+            {
+                using var reader = new StreamReader(file.OpenReadStream());
+                json = reader.ReadToEnd();
+            }
+
+            // If file is empty - use appendix
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                json = @"[
+                 {
                  ""type"": ""restaurant"",
                  ""id"": ""R-1001"",
                  ""name"": ""Trattoria Luca"",
-                 ""description"": ""Pasta & grill with fresh daily specials"",
                  ""ownerEmailAddress"": ""luca.owner@example.com"",
                  ""address"": ""123 Harbor Road, Valletta"",
                  ""phone"": ""+356 1234 5678""
@@ -30,7 +50,6 @@ namespace EP._6._2A_Assignment.Controllers
                  ""type"": ""restaurant"",
                  ""id"": ""R-1002"",
                  ""name"": ""Sushi Wave"",
-                 ""description"": ""Classic nigiri and creative rolls"",
                  ""ownerEmailAddress"": ""hana.owner@example.com"",
                  ""address"": ""45 Marina Street, Sliema"",
                  ""phone"": ""+356 9876 5432""
@@ -51,50 +70,39 @@ namespace EP._6._2A_Assignment.Controllers
                  ""currency"": ""EUR"",
                  "" restaurantId "": ""R-1001""
                  }
-
-            ]";
-
-            string json = jsonInput ?? tempJson; // if entered - we use it, otherwise tempJson 
-
-            if (file != null)
-            {
-                using var reader = new StreamReader(file.OpenReadStream());
-                json = reader.ReadToEnd();
+                ]";
             }
 
+            // Convert Json in object list IItemValidating via fabric
             List<IItemValidating> items = _factory.Create(json);
 
+            // Temporary storage saving 
+            tempRepo.Save(items);
+
+            // Transmit list in view for preview 
             return View("Preview", items);
         }
 
+        // POST: Commit — saving from in-memory in DB
         [HttpPost]
-        public IActionResult BulkImport(IFormFile file, string jsonInput, [FromServices] ItemsInMemoryRepository tempRepo) // inject in-memory repo
+        public IActionResult Commit(
+            [FromServices] ItemsInMemoryRepository tempRepo,
+            [FromServices] ItemsDbRepository dbRepo)
         {
-            string tempJson = "..."; 
+            // Taking elements from repository
+            var items = tempRepo.GetAll();
 
-            string json = jsonInput ?? tempJson;
-
-            if (file != null)
+            if (items.Any())
             {
-                using var reader = new StreamReader(file.OpenReadStream());
-                json = reader.ReadToEnd();
+                // Saving them in DB
+                dbRepo.Save(items);
+
+                // Clear temporary storage
+                tempRepo.Clear();
             }
 
-            List<IItemValidating> items = _factory.Create(json);
-
-            tempRepo.Save(items); // temporary saving in memory 
-
-            return View("Preview", items);
-        }
-        public IActionResult Commit([FromServices] ItemsInMemoryRepository tempRepo,
-                            [FromServices] ItemsDbRepository dbRepo)
-        {
-            var items = tempRepo.GetAll(); // take all from the memory 
-            dbRepo.Save(items);            // saving into db
-            tempRepo.Clear();              // clean temp data
-
+            // Redirect user to the catalog
             return RedirectToAction("Index", "Catalog");
         }
-
     }
 }
