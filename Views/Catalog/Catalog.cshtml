@@ -4,8 +4,8 @@
     @foreach (var item in Model)
     {
         <div class="catalog-item">
-            <input type="checkbox" name="selectedIds" value="@item.Id" />
-    @await Html.PartialAsync(item.GetCardPartial(), item)
+            <input type="checkbox" name="selectedIds" value="@item.GetId()" />
+            @await Html.PartialAsync(item.GetCardPartial(), item)
         </div>
     }
 

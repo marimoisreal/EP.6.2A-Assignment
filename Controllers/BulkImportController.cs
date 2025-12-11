@@ -85,24 +85,21 @@ namespace EP._6._2A_Assignment.Controllers
 
         // POST: Commit — saving from in-memory in DB
         [HttpPost]
-        public IActionResult Commit(
-            [FromServices] ItemsInMemoryRepository tempRepo,
-            [FromServices] ItemsDbRepository dbRepo)
+        [HttpPost]
+        public IActionResult Commit(IFormFile zipFile, [FromServices] ItemsInMemoryRepository tempRepo, [FromServices] ItemsDbRepository dbRepo)
         {
-            // Taking elements from repository
+            // 1. Getting earlier loaded elements
             var items = tempRepo.GetAll();
 
-            if (items.Any())
-            {
-                // Saving them in DB
-                dbRepo.Save(items);
+            // 2. Saving each element one by one
+            dbRepo.Save(items);
 
-                // Clear temporary storage
-                tempRepo.Clear();
-            }
+            // 3. Clearing storage
+            tempRepo.Clear();
 
-            // Redirect user to the catalog
             return RedirectToAction("Index", "Catalog");
         }
+
+
     }
 }

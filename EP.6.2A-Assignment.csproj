@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>EP._6._2A_Assignment</RootNamespace>
+    <UserSecretsId>90e35c90-4c15-4b22-99f1-f82cb43690cb</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

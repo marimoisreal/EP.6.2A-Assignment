@@ -1,0 +1,9 @@
+﻿@model List<MenuItem>
+
+<h2>Menu</h2>
+<ul>
+    @foreach (var item in Model)
+    {
+        <li>@item.Title — @item.Price €</li>
+    }
+</ul>
