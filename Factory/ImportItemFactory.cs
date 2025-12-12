@@ -31,7 +31,7 @@ namespace EP._6._2A_Assignment.Factories
                         Id = item.GuidId ?? Guid.NewGuid(),
                         Title = item.Title,
                         Price = item.Price ?? 0,
-                        restaurantId = item.restaurantId ?? 0,
+                        RestaurantId = item.RestaurantId ?? 0,
                         Status = "Pending"
                     });
                 }
@@ -54,6 +54,6 @@ namespace EP._6._2A_Assignment.Factories
 
         public string Title { get; set; }
         public double? Price { get; set; }
-        public int? restaurantId { get; set; }
+        public int? RestaurantId { get; set; }
     }
 }
