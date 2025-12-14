@@ -1,7 +1,16 @@
 ﻿@model EP._6._2A_Assignment.Models.Restaurant
 
-<div class="restaurant-card">
-    <h3>@Model.Name</h3>
-    <p>@Model.Status</p>
-    <p>@Model.ownerEmailAdress</p>
+<div class="col-md-4 mb-3">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">@Model.Name</h5>
+            <p class="card-text">@Model.ownerEmailAdress</p>
+            <span class="badge bg-secondary">@Model.Status</span>
+
+            <a class="btn btn-primary"
+               href="@Url.Action("Index", "Catalog", new { restaurantId = Model.Id })">
+                Show Menu
+            </a>
+        </div>
+    </div>
 </div>

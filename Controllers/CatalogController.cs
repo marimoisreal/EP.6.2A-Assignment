@@ -1,7 +1,8 @@
 ﻿using DataAccess.Context;
 using EP._6._2A_Assignment.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
 namespace EP._6._2A_Assignment.Controllers
 {
@@ -14,45 +15,95 @@ namespace EP._6._2A_Assignment.Controllers
             _context = context;
         }
 
-        public IActionResult Index(string view = "card", bool forApproval = false)
+        public class AdminController : Controller
         {
+            private readonly ItemsDbRepository _dbRepo;
+            private readonly ApplicationDbContext _context;
+            private readonly UserManager<IdentityUser> _userManager;
+            private readonly string _siteAdminEmail = "admin@example.com"; // admin
 
-            var restaurants = _context.Restaurants.Cast<IItemValidating>().ToList();
-            var menuItems = _context.MenuItems.Cast<IItemValidating>().ToList();
-
-
-            if (forApproval)
+            public AdminController(ItemsDbRepository dbRepo, ApplicationDbContext context, UserManager<IdentityUser> userManager)
             {
-                restaurants = restaurants.Where(r => r.Status == "Pending").ToList();
-                menuItems = menuItems.Where(m => m.Status == "Pending").ToList();
+                _dbRepo = dbRepo;
+                _context = context;
+                _userManager = userManager;
             }
 
+            public async Task<IActionResult> Verification()
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null) return Challenge(); // if not authorized
 
-            var items = restaurants.Concat(menuItems).ToList();
-
-            ViewBag.ViewType = view; // card or row
-            ViewBag.ForApproval = forApproval;
-
-            return View("Catalog", items);
+                if (user.Email == _siteAdminEmail)
+                {
+                    // Admin sees all pendings 
+                    var pendingRestaurants = _context.Restaurants.Where(r => r.Status == "Pending").ToList();
+                    return View("AdminPendingRestaurants", pendingRestaurants);
+                }
+                else
+                {
+                    // Owners see their restaurants
+                    var ownedRestaurants = _context.Restaurants.Where(r => r.ownerEmailAdress == user.Email).ToList();
+                    return View("OwnerPendingMenuItems", ownedRestaurants);
+                }
+            }
+            [HttpPost]
+            [Authorize] // only authorized users
+            [TypeFilter(typeof(ValidateUserCanApproveAttribute))] // our ActionFilter for the rights
+            public IActionResult Approve(Guid[] selectedIds)
+            {
+                _dbRepo.Approve(selectedIds); // rpository method updates status in DB
+                return RedirectToAction("Verification");
+            }
         }
 
+        // type = restaurants | menu
+        // view = card | list
+        public IActionResult Index(string view = "card", bool forApproval = false, string type = "restaurant")
+        {
+            if (type == "restaurant")
+            {
+                var restaurants = _context.Restaurants.AsQueryable();
+
+                if (forApproval)
+                {
+                    restaurants = restaurants.Where(r => r.Status == "Pending");
+                }
+                return View("CatalogRestaurants", restaurants.ToList());
+            }
+            else if (type == "menuitem")
+            {
+                var menuItems = _context.MenuItems.AsQueryable();
+
+                if (forApproval)
+                {
+                    menuItems = menuItems.Where(m => m.Status == "Pending");
+                }
+                return View("CatalogMenu", menuItems.ToList());
+            }
+
+            return View();
+        }
 
         [HttpPost]
         public IActionResult ApproveSelected(Guid[] selectedIds)
         {
             foreach (var id in selectedIds)
             {
-                var restaurant = _context.Restaurants.Find(id);
-                if (restaurant != null) restaurant.Status = "Approved";
-
-                var menuItem = _context.MenuItems.Find(id);
-                if (menuItem != null) menuItem.Status = "Approved";
+                var rest = _context.Restaurants.Find(id);
+                if (rest != null)
+                {
+                    rest.Status = "Approved";
+                }
+                var menu = _context.MenuItems.Find(id);
+                if (menu != null)
+                {
+                    menu.Status = "Approved";
+                }
             }
 
             _context.SaveChanges();
             return RedirectToAction("Index", new { forApproval = true });
         }
-
     }
-
 }

@@ -1,13 +1,30 @@
 ﻿@{
-    ViewBag.Title = "Bulk Import";
+    ViewData["Title"] = "Bulk Import";
 }
 
-<h2>Upload JSON file</h2>
+<h2>Bulk Import</h2>
 
-<form method="post" enctype="multipart/form-data">
-    <input type="file" name="file" />
-    <br><br>
-    <textarea name="jsonInput" style="width:400px;height:200px"></textarea>
-    <br><br>
-    <button type="submit">Upload</button>
+<form asp-action="BulkImport" method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label class="form-label">JSON file</label>
+        <input type="file" name="file" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Or paste JSON</label>
+        <textarea name="jsonInput" class="form-control" rows="6"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Preview</button>
+</form>
+
+<hr />
+
+<form asp-action="Commit" method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label class="form-label">Images ZIP file</label>
+        <input type="file" name="zipFile" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-success">Commit to Database</button>
 </form>

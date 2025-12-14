@@ -25,6 +25,10 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
+                        <li>
+                            <a href="@Url.Action("Index", "Catalog", new { type = "restaurant" })" class="btn">Restaurants</a>
+                            <a href="@Url.Action("Index", "Catalog", new { type = "menuitem" })" class="btn">Menu Items</a>
+                        </li>
                     </ul>
                     <ul class="navbar-nav ms-auto">
                         @if (User.Identity.IsAuthenticated)

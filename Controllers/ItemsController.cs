@@ -19,7 +19,7 @@ namespace EP._6._2A_Assignment.Controllers
         }
 
         // Restaurant's menu
-        public IActionResult Restaurant(int id)
+        public IActionResult Restaurant(Guid id)
         {
             var menuItems = _repo.GetApprovedMenuItems(id);
             return View(menuItems);

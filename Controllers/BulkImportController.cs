@@ -3,6 +3,7 @@ using EP._6._2A_Assignment.Interfaces;
 using EP._6._2A_Assignment.Models;
 using EP._6._2A_Assignment.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using System.IO.Compression;
 
 namespace EP._6._2A_Assignment.Controllers
 {
@@ -23,7 +24,10 @@ namespace EP._6._2A_Assignment.Controllers
 
         // POST: Json processing
         [HttpPost]
-        public IActionResult BulkImport(IFormFile file, string jsonInput, [FromServices] ItemsInMemoryRepository tempRepo) 
+        public IActionResult BulkImport(
+            IFormFile file,
+            string jsonInput,
+            [FromServices] ItemsInMemoryRepository tempRepo)
         {
             string json = jsonInput;
 
@@ -61,14 +65,6 @@ namespace EP._6._2A_Assignment.Controllers
                  ""price"": 11.50,
                  ""currency"": ""EUR"",
                  ""restaurantId"": ""R-1001""
-                 },
-                 {
-                 ""type"": ""menuItem"",
-                 ""id"": ""M-2002"",
-                 ""title"": ""Ribeye 300g"",
-                 ""price"": 24.00,
-                 ""currency"": ""EUR"",
-                 "" restaurantId "": ""R-1001""
                  }
                 ]";
             }
@@ -85,8 +81,10 @@ namespace EP._6._2A_Assignment.Controllers
 
         // POST: Commit — saving from in-memory in DB
         [HttpPost]
-        [HttpPost]
-        public IActionResult Commit(IFormFile zipFile, [FromServices] ItemsInMemoryRepository tempRepo, [FromServices] ItemsDbRepository dbRepo)
+        public IActionResult Commit(
+            IFormFile zipFile,
+            [FromServices] ItemsInMemoryRepository tempRepo,
+            [FromServices] ItemsDbRepository dbRepo)
         {
             // 1. Getting earlier loaded elements
             var items = tempRepo.GetAll();
@@ -94,12 +92,41 @@ namespace EP._6._2A_Assignment.Controllers
             // 2. Saving each element one by one
             dbRepo.Save(items);
 
+            // Further BulkimageUploadPart
+
+            if (zipFile != null && zipFile.Length > 0)
+            {
+                // Path for image storage
+                var imagesPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+
+                if (!Directory.Exists(imagesPath))
+                    Directory.CreateDirectory(imagesPath);
+
+                // Copy zip into memory
+                using var zipStream = new MemoryStream();
+                zipFile.CopyTo(zipStream);
+
+                using var archive = new ZipArchive(zipStream);
+
+                foreach (var entry in archive.Entries)
+                {
+                    // Skip folders
+                    if (string.IsNullOrEmpty(entry.Name))
+                        continue;
+
+                    var filePath = Path.Combine(imagesPath, entry.Name);
+
+                    using var entryStream = entry.Open();
+                    using var fileStream = new FileStream(filePath, FileMode.Create);
+
+                    entryStream.CopyTo(fileStream);
+                }
+            }
+
             // 3. Clearing storage
             tempRepo.Clear();
 
             return RedirectToAction("Index", "Catalog");
         }
-
-
     }
 }

@@ -1,0 +1,19 @@
+﻿@model IEnumerable<EP._6._2A_Assignment.Models.Restaurant>
+
+
+<h2>Restaurants</h2>
+
+<div class="row">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">@item.Name</h5>
+                    <p class="card-text">@item.ownerEmailAdress</p>
+                    <span class="badge bg-secondary">Status: @item.Status</span>
+                </div>
+            </div>
+        </div>
+    }
+</div>

@@ -1,5 +1,6 @@
 using DataAccess.Context;
 using EP._6._2A_Assignment.Data;
+using EP._6._2A_Assignment.Factories;
 using EP._6._2A_Assignment.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlSer
 builder.Services.AddDbContext<IdentityContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("DataAccess")));
 
 
-
 // Identity
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<IdentityContext>();
 
@@ -25,9 +25,11 @@ builder.Services.AddMemoryCache();
 
 // repository register
 builder.Services.AddScoped<ItemsInMemoryRepository>();
-builder.Services.AddScoped<ItemsDbRepository>();
+builder.Services.AddScoped<IItemsRepository, ItemsDbRepository>();
 builder.Services.AddScoped<IItemsRepository, ItemsInMemoryRepository>();
 builder.Services.AddRazorPages();
+
+builder.Services.AddScoped<ImportItemFactory>();
 
 var app = builder.Build(); 
 
@@ -54,3 +56,8 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 app.Run();
+
+// admin
+var siteAdminEmail = "admin@site.com";
+var siteAdminPassword = "Admin123!";
+
