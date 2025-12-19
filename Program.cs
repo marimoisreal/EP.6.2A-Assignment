@@ -24,9 +24,12 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 builder.Services.AddMemoryCache();
 
 // repository register
+// repository register
 builder.Services.AddScoped<ItemsInMemoryRepository>();
+builder.Services.AddScoped<ItemsDbRepository>();
 builder.Services.AddScoped<IItemsRepository, ItemsDbRepository>();
-builder.Services.AddScoped<IItemsRepository, ItemsInMemoryRepository>();
+
+
 builder.Services.AddRazorPages();
 
 builder.Services.AddScoped<ImportItemFactory>();

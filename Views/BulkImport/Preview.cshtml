@@ -1,9 +1,33 @@
-﻿@using EP._6._2A_Assignment.Interfaces
-@model IEnumerable<IItemValidating>
+﻿@model List<EP._6._2A_Assignment.Interfaces.IItemValidating>
 
-<h2>Preview Imported Data (Not Saved Yet)</h2>
+<h2>Preview imported data (not saved yet)</h2>
 
-@foreach (var item in Model)
-{
-    @Html.Partial(item.GetCardPartial(), item)
-}
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Type</th>
+            <th>Name / Title</th>
+            <th>Restaurant</th>
+            <th>Price</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach(var item in Model)
+    {
+        <tr>
+            <td>@(item is EP._6._2A_Assignment.Models.Restaurant ? "Restaurant" : "MenuItem")</td>
+            <td>@(item is EP._6._2A_Assignment.Models.Restaurant r ? r.Name : ((EP._6._2A_Assignment.Models.MenuItem)item).Title)</td>
+            <td>@(item is EP._6._2A_Assignment.Models.MenuItem m ? m.RestaurantId.ToString() : "-")</td>
+            <td>@(item is EP._6._2A_Assignment.Models.MenuItem mi ? mi.Price.ToString("F2") : "-")</td>
+            <td>@item.Status</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<form asp-action="Commit" method="post" enctype="multipart/form-data">
+    <label>Upload Images ZIP:</label>
+    <input type="file" name="zipFile" />
+    <button type="submit" class="btn btn-primary">Commit</button>
+</form>

@@ -24,10 +24,7 @@ namespace EP._6._2A_Assignment.Controllers
 
         // POST: Json processing
         [HttpPost]
-        public IActionResult BulkImport(
-            IFormFile file,
-            string jsonInput,
-            [FromServices] ItemsInMemoryRepository tempRepo)
+        public IActionResult BulkImport(IFormFile file, string jsonInput, [FromServices] ItemsInMemoryRepository tempRepo)
         {
             string json = jsonInput;
 
@@ -46,7 +43,7 @@ namespace EP._6._2A_Assignment.Controllers
                  ""type"": ""restaurant"",
                  ""id"": ""R-1001"",
                  ""name"": ""Trattoria Luca"",
-                 ""ownerEmailAddress"": ""luca.owner@example.com"",
+                 ""ownerEmailAddress"": ""luca.owner@example.com"", // Password1!
                  ""address"": ""123 Harbor Road, Valletta"",
                  ""phone"": ""+356 1234 5678""
                  },
@@ -65,7 +62,16 @@ namespace EP._6._2A_Assignment.Controllers
                  ""price"": 11.50,
                  ""currency"": ""EUR"",
                  ""restaurantId"": ""R-1001""
+                 },
+                {
+                 ""type"": ""menuItem"",
+                 ""id"": ""M-2002"",
+                 ""title"": ""Ribeye 300g"",
+                 ""price"": 24.00,
+                 ""currency"": ""EUR"",
+                 "" restaurantId "": ""R-1001""
                  }
+
                 ]";
             }
 
@@ -81,10 +87,7 @@ namespace EP._6._2A_Assignment.Controllers
 
         // POST: Commit — saving from in-memory in DB
         [HttpPost]
-        public IActionResult Commit(
-            IFormFile zipFile,
-            [FromServices] ItemsInMemoryRepository tempRepo,
-            [FromServices] ItemsDbRepository dbRepo)
+        public IActionResult Commit(IFormFile zipFile, [FromServices] ItemsInMemoryRepository tempRepo, [FromServices] ItemsDbRepository dbRepo)
         {
             // 1. Getting earlier loaded elements
             var items = tempRepo.GetAll();
