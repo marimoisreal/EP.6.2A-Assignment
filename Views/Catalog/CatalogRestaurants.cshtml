@@ -1,19 +1,14 @@
 ﻿@model IEnumerable<EP._6._2A_Assignment.Models.Restaurant>
 
+<p>Authenticated: @User.Identity.IsAuthenticated</p>
+<p>Name: @User.Identity.Name</p>
+<p>Is Admin: @User.IsInRole("Admin")</p>
 
 <h2>Restaurants</h2>
 
 <div class="row">
-    @foreach (var item in Model)
+    @foreach (var restaurant in Model)
     {
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">@item.Name</h5>
-                    <p class="card-text">@item.ownerEmailAdress</p>
-                    <span class="badge bg-secondary">Status: @item.Status</span>
-                </div>
-            </div>
-        </div>
+        @Html.Partial("_RestaurantCard", restaurant)
     }
 </div>

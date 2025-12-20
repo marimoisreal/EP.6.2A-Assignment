@@ -8,9 +8,25 @@
             <span class="badge bg-secondary">@Model.Status</span>
 
             <a class="btn btn-primary"
-               href="@Url.Action("Index", "Catalog", new { restaurantId = Model.Id })">
+               href="@Url.Action("Menu", "Catalog", new { restaurantId = Model.Id })">
                 Show Menu
             </a>
+            @if (User.IsInRole("Admin") && string.Equals(Model.Status, "Pending", StringComparison.OrdinalIgnoreCase))
+            {
+                <form asp-controller="Catalog" asp-action="ApproveSelected" method="post">
+                    <input type="hidden" name="selectedIds" value="@Model.Id" />
+                    <button type="submit" class="btn btn-success">Approve</button>
+                </form>
+            }
+            @if (User.Identity.Name == Model.ownerEmailAdress)
+            {
+                <a class="btn btn-warning"
+                   href="@Url.Action("OwnerMenuApproval", "Catalog", new { restaurantId = Model.Id })">
+                    Approve Menu Items
+                </a>
+            }
+
+
         </div>
     </div>
 </div>

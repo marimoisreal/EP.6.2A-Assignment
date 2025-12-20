@@ -11,32 +11,36 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // DbContext for ApplicationDbContext 
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("DataAccess")));
+builder.Services.AddDbContext<ApplicationDbContext>(options =>options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// DbContext for Identity
-builder.Services.AddDbContext<IdentityContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("DataAccess")));
-
+// DbContext для Identity (AspNetUsers)
+builder.Services.AddDbContext<IdentityContext>(options =>options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Identity
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<IdentityContext>();
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddRoles<IdentityRole>().AddEntityFrameworkStores<IdentityContext>();
 
 
 builder.Services.AddMemoryCache();
 
 // repository register
-// repository register
-builder.Services.AddScoped<ItemsInMemoryRepository>();
 builder.Services.AddScoped<ItemsDbRepository>();
-builder.Services.AddScoped<IItemsRepository, ItemsDbRepository>();
+builder.Services.AddScoped<IItemsRepository>(sp => sp.GetRequiredService<ItemsDbRepository>());
+builder.Services.AddSingleton<ItemsInMemoryRepository>();
+builder.Services.AddScoped<ImportItemFactory>();
 
 
 builder.Services.AddRazorPages();
 
-builder.Services.AddScoped<ImportItemFactory>();
 
-var app = builder.Build(); 
+var app = builder.Build();
 
 
+// Configure the HTTP request pipeline
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
@@ -54,13 +58,39 @@ app.UseRouting();
 app.UseAuthentication(); // added for the login 
 app.UseAuthorization();
 
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+
+    // If there is not admin role, create
+    if (!await roleManager.RoleExistsAsync("Admin"))
+    {
+        await roleManager.CreateAsync(new IdentityRole("Admin"));
+    }
+
+    // Creating admin user role
+    var adminEmail = "admin@site.com";
+    var adminPassword = "Admin123!";
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+    if (adminUser == null)
+    {
+        adminUser = new IdentityUser { UserName = adminEmail, Email = adminEmail, EmailConfirmed = true };
+        await userManager.CreateAsync(adminUser, adminPassword);
+    }
+
+    // Assign admin role
+    if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
+    {
+        await userManager.AddToRoleAsync(adminUser, "Admin");
+    }
+}
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 app.Run();
 
-// admin
-var siteAdminEmail = "admin@site.com";
-var siteAdminPassword = "Admin123!";
+
 

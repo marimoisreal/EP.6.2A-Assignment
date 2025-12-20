@@ -19,7 +19,7 @@ namespace EP._6._2A_Assignment.Factories
 
             foreach (var item in rawItems)
             {
-                if (item.Type?.Equals("restaurant", StringComparison.OrdinalIgnoreCase) == true)
+                if (item.Type.Equals("restaurant", StringComparison.OrdinalIgnoreCase))
                 {
                     items.Add(new Restaurant
                     {
@@ -29,13 +29,14 @@ namespace EP._6._2A_Assignment.Factories
                         Status = "Pending"
                     });
                 }
-                else if (item.Type?.Equals("menuItem", StringComparison.OrdinalIgnoreCase) == true)
+                else if (item.Type.Equals("menuItem", StringComparison.OrdinalIgnoreCase))
                 {
                     items.Add(new MenuItem
                     {
                         Id = item.GuidId ?? Guid.NewGuid(),
                         Title = item.Title,
                         Price = item.Price ?? 0,
+                        RestaurantId = item.RestaurantGuidId ?? Guid.Empty,
                         Status = "Pending"
                     });
                 }

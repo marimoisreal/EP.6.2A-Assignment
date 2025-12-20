@@ -105,5 +105,22 @@ namespace EP._6._2A_Assignment.Controllers
             _context.SaveChanges();
             return RedirectToAction("Index", new { forApproval = true });
         }
+
+        public IActionResult Menu(Guid restaurantId)
+        {
+            var menuItems = _context.MenuItems.Where(m => m.RestaurantId == restaurantId && m.Status == "Approved").ToList();
+            return View("CatalogMenu", menuItems);
+        }
+
+        [Authorize]
+        public IActionResult OwnerMenuApproval(Guid restaurantId)
+        {
+            var userEmail = User.Identity.Name;
+            var items = _context.MenuItems.Where(m => m.RestaurantId == restaurantId && m.Status == "Pending").ToList();
+
+            return View("OwnerMenuApproval", items);
+        }
+
+
     }
 }
