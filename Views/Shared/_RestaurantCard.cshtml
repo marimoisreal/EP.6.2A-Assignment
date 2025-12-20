@@ -1,32 +1,33 @@
 ﻿@model EP._6._2A_Assignment.Models.Restaurant
 
-<div class="col-md-4 mb-3">
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h5 class="card-title">@Model.Name</h5>
-            <p class="card-text">@Model.ownerEmailAdress</p>
-            <span class="badge bg-secondary">@Model.Status</span>
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card shadow-lg h-100 border-0 rounded-4 overflow-hidden">
+        <img src="~/images/restaurant-placeholder.jpg" class="card-img-top" alt="Restaurant Image" style="height: 200px; object-fit: cover;">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title text-primary fw-bold">@Model.Name</h5>
+            <p class="card-text text-muted">@Model.ownerEmailAdress</p>
+            <span class="badge @(
+                  Model.Status == "Approved" ? "bg-success" :
+                  Model.Status == "Pending" ? "bg-warning text-dark" : "bg-secondary")">
+                @Model.Status
+            </span>
 
-            <a class="btn btn-primary"
-               href="@Url.Action("Menu", "Catalog", new { restaurantId = Model.Id })">
-                Show Menu
-            </a>
-            @if (User.IsInRole("Admin") && string.Equals(Model.Status, "Pending", StringComparison.OrdinalIgnoreCase))
-            {
-                <form asp-controller="Catalog" asp-action="ApproveSelected" method="post">
-                    <input type="hidden" name="selectedIds" value="@Model.Id" />
-                    <button type="submit" class="btn btn-success">Approve</button>
-                </form>
-            }
-            @if (User.Identity.Name == Model.ownerEmailAdress)
-            {
-                <a class="btn btn-warning"
-                   href="@Url.Action("OwnerMenuApproval", "Catalog", new { restaurantId = Model.Id })">
-                    Approve Menu Items
+            <div class="mt-auto d-flex justify-content-between align-items-center pt-3">
+                <a class="btn btn-outline-primary btn-sm flex-fill me-2"
+                   href="@Url.Action("Index", "Catalog", new { restaurantId = Model.Id })">
+                    Show Menu
                 </a>
-            }
 
-
+                @if (User.IsInRole("Admin") && string.Equals(Model.Status, "Pending", StringComparison.OrdinalIgnoreCase))
+                {
+                    <form asp-controller="Catalog" asp-action="ApproveSelected" method="post" class="flex-fill ms-2">
+                        <input type="hidden" name="selectedIds" value="@Model.Id" />
+                        <button type="submit" class="btn btn-success btn-sm w-100">
+                            Approve
+                        </button>
+                    </form>
+                }
+            </div>
         </div>
     </div>
 </div>

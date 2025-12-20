@@ -1,14 +1,10 @@
 ﻿@model IEnumerable<EP._6._2A_Assignment.Models.Restaurant>
 
-<p>Authenticated: @User.Identity.IsAuthenticated</p>
-<p>Name: @User.Identity.Name</p>
-<p>Is Admin: @User.IsInRole("Admin")</p>
-
-<h2>Restaurants</h2>
+<h2 class="mb-4">Restaurants</h2>
 
 <div class="row">
     @foreach (var restaurant in Model)
     {
-        @Html.Partial("_RestaurantCard", restaurant)
+        @await Html.PartialAsync("_RestaurantCard", restaurant)
     }
 </div>
