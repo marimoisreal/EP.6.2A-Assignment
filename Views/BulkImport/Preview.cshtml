@@ -37,10 +37,7 @@
     <div class="card-body">
         <h4 class="card-title">Finalize Import</h4>
         <p><strong>Step 1:</strong> Download the folder structure for your menu items.</p>
-        <a href="@Url.Action("DownloadGeneratedZip", "BulkImport", new { restaurantId = restaurantId })"
-           class="btn btn-outline-warning @(restaurantId == Guid.Empty ? "disabled" : "")">
-            Download Images ZIP
-        </a>
+        <a href="@Url.Action("DownloadGeneratedZip", "BulkImport")" class="btn btn-outline-warning"> Download Images ZIP </a>
 
         <form asp-action="Commit" method="post" enctype="multipart/form-data" class="mt-4">
             <p><strong>Step 2:</strong> Upload the ZIP with your images and save everything to the database.</p>

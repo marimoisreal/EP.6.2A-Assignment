@@ -104,12 +104,14 @@ namespace EP._6._2A_Assignment.Controllers
 
         // NEW METHOD: Generation of ZIP for download
         [HttpGet]
-        public async Task<IActionResult> DownloadGeneratedZip(Guid restaurantId)
+        public IActionResult DownloadGeneratedZip([FromServices] ItemsInMemoryRepository tempRepo)
         {
-            // Getting list of menu from the context
-            var items = await _context.MenuItems.Where(m => m.RestaurantId == restaurantId).ToListAsync();
+            var items = tempRepo.GetAll().OfType<MenuItem>().ToList();
 
-            if (!items.Any()) return BadRequest("No items found to generate zip file");
+            if (!items.Any())
+            {
+                return Content("No menu items found in preview. Please upload JSON first.");
+            }
 
             using (var ms = new MemoryStream())
             {
@@ -125,12 +127,12 @@ namespace EP._6._2A_Assignment.Controllers
                             using (var entryStream = entry.Open())
                             using (var fileStream = new FileStream(defaultImagePath, FileMode.Open, FileAccess.Read))
                             {
-                                await fileStream.CopyToAsync(entryStream);
+                                fileStream.CopyTo(entryStream);
                             }
                         }
                     }
                 }
-                return File(ms.ToArray(), "application/zip", "RestaurantImages.zip");
+                return File(ms.ToArray(), "application/zip", "Menu_Structure.zip");
             }
         }
     }
