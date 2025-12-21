@@ -33,7 +33,19 @@ builder.Services.AddRazorPages();
 
 
 var app = builder.Build();
-
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var identityContext = services.GetRequiredService<EP._6._2A_Assignment.Data.IdentityContext>();
+        identityContext.Database.EnsureCreated();
+    }
+    catch (Exception ex)
+    {
+        
+    }
+}
 
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
