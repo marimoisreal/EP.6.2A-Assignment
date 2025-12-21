@@ -1,33 +1,53 @@
 ﻿@model List<EP._6._2A_Assignment.Interfaces.IItemValidating>
+@using EP._6._2A_Assignment.Models
 
-<h2>Preview imported data (not saved yet)</h2>
+@{
+    ViewData["Title"] = "Import Preview";
+    var restaurant = Model.OfType<Restaurant>().FirstOrDefault();
+    var restaurantId = restaurant?.Id ?? Guid.Empty;
+}
+
+<h2>Preview Imported Data</h2>
 
 <table class="table table-bordered">
     <thead>
         <tr>
             <th>Type</th>
             <th>Name / Title</th>
-            <th>Restaurant</th>
+            <th>Restaurant ID</th>
             <th>Price</th>
             <th>Status</th>
         </tr>
     </thead>
     <tbody>
-    @foreach(var item in Model)
-    {
-        <tr>
-            <td>@(item is EP._6._2A_Assignment.Models.Restaurant ? "Restaurant" : "MenuItem")</td>
-            <td>@(item is EP._6._2A_Assignment.Models.Restaurant r ? r.Name : ((EP._6._2A_Assignment.Models.MenuItem)item).Title)</td>
-            <td>@(item is EP._6._2A_Assignment.Models.MenuItem m ? m.RestaurantId.ToString() : "-")</td>
-            <td>@(item is EP._6._2A_Assignment.Models.MenuItem mi ? mi.Price.ToString("F2") : "-")</td>
-            <td>@item.Status</td>
-        </tr>
-    }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@(item is Restaurant ? "Restaurant" : "Menu Item")</td>
+                <td>@(item is Restaurant r ? r.Name : ((MenuItem)item).Title)</td>
+                <td>@(item is MenuItem m ? m.RestaurantId.ToString() : "-")</td>
+                <td>@(item is MenuItem mi ? mi.Price.ToString("F2") + " EUR" : "-")</td>
+                <td><span class="badge bg-info text-dark">@item.Status</span></td>
+            </tr>
+        }
     </tbody>
 </table>
 
-<form asp-action="Commit" method="post" enctype="multipart/form-data">
-    <label>Upload Images ZIP:</label>
-    <input type="file" name="zipFile" />
-    <button type="submit" class="btn btn-primary">Commit</button>
-</form>
+<div class="card border-primary mt-4">
+    <div class="card-body">
+        <h4 class="card-title">Finalize Import</h4>
+        <p><strong>Step 1:</strong> Download the folder structure for your menu items.</p>
+        <a href="@Url.Action("DownloadGeneratedZip", "BulkImport", new { restaurantId = restaurantId })"
+           class="btn btn-outline-warning @(restaurantId == Guid.Empty ? "disabled" : "")">
+            Download Images ZIP
+        </a>
+
+        <form asp-action="Commit" method="post" enctype="multipart/form-data" class="mt-4">
+            <p><strong>Step 2:</strong> Upload the ZIP with your images and save everything to the database.</p>
+            <div class="mb-3">
+                <input type="file" name="zipFile" class="form-control" accept=".zip" />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Commit to Database</button>
+        </form>
+    </div>
+</div>

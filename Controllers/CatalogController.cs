@@ -86,29 +86,30 @@ namespace EP._6._2A_Assignment.Controllers
         }
 
         [HttpPost]
-        public IActionResult ApproveSelected(Guid[] selectedIds)
+        public IActionResult ApproveSelected(Guid[] selectedIds, Guid? restaurantId)
         {
             foreach (var id in selectedIds)
             {
                 var rest = _context.Restaurants.Find(id);
-                if (rest != null)
-                {
-                    rest.Status = "Approved";
-                }
+                if (rest != null) rest.Status = "Approved";
+
                 var menu = _context.MenuItems.Find(id);
-                if (menu != null)
-                {
-                    menu.Status = "Approved";
-                }
+                if (menu != null) menu.Status = "Approved";
             }
 
             _context.SaveChanges();
+
+            if (restaurantId != null)
+            {
+                return RedirectToAction("OwnerMenuApproval", new { restaurantId = restaurantId });
+            }
+
             return RedirectToAction("Index", new { forApproval = true });
         }
 
-        public IActionResult Menu(Guid restaurantId)
+        public IActionResult Menu(Guid restaurantId) 
         {
-            var menuItems = _context.MenuItems.Where(m => m.RestaurantId == restaurantId && m.Status == "Approved").ToList();
+            var menuItems = _context.MenuItems.Where(m => m.RestaurantId == restaurantId).ToList();
             return View("CatalogMenu", menuItems);
         }
 

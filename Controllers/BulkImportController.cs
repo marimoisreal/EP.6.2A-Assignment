@@ -3,17 +3,22 @@ using EP._6._2A_Assignment.Interfaces;
 using EP._6._2A_Assignment.Models;
 using EP._6._2A_Assignment.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.IO.Compression;
+using DataAccess.Context; // Добавлено для доступа к ApplicationDbContext
 
 namespace EP._6._2A_Assignment.Controllers
 {
     public class BulkImportController : Controller
     {
         private readonly ImportItemFactory _factory;
+        private readonly ApplicationDbContext _context; // Добавлен контекст базы данных
 
-        public BulkImportController(ImportItemFactory factory)
+        // Обновленный конструктор: теперь принимает и фабрику, и контекст
+        public BulkImportController(ImportItemFactory factory, ApplicationDbContext context)
         {
             _factory = factory;
+            _context = context;
         }
 
         // GET: show uploading page
@@ -38,41 +43,7 @@ namespace EP._6._2A_Assignment.Controllers
             // If file is empty - use appendix
             if (string.IsNullOrWhiteSpace(json))
             {
-                json = @"[
-                 {
-                 ""type"": ""restaurant"",
-                 ""id"": ""R-1001"",
-                 ""name"": ""Trattoria Luca"",
-                 ""ownerEmailAddress"": ""luca.owner@example.com"", // Password1!
-                 ""address"": ""123 Harbor Road, Valletta"",
-                 ""phone"": ""+356 1234 5678""
-                 },
-                 {
-                 ""type"": ""restaurant"",
-                 ""id"": ""R-1002"",
-                 ""name"": ""Sushi Wave"",
-                 ""ownerEmailAddress"": ""hana.owner@example.com"",
-                 ""address"": ""45 Marina Street, Sliema"",
-                 ""phone"": ""+356 9876 5432""
-                 },
-                 {
-                 ""type"": ""menuItem"",
-                 ""id"": ""M-2001"",
-                 ""title"": ""Tagliatelle al Ragù"",
-                 ""price"": 11.50,
-                 ""currency"": ""EUR"",
-                 ""restaurantId"": ""R-1001""
-                 },
-                {
-                 ""type"": ""menuItem"",
-                 ""id"": ""M-2002"",
-                 ""title"": ""Ribeye 300g"",
-                 ""price"": 24.00,
-                 ""currency"": ""EUR"",
-                 "" restaurantId "": ""R-1001""
-                 }
-
-                ]";
+                json = @"[...]"; // Твой JSON (оставь как был)
             }
 
             // Convert Json in object list IItemValidating via fabric
@@ -96,7 +67,6 @@ namespace EP._6._2A_Assignment.Controllers
             dbRepo.Save(items);
 
             // Further BulkimageUploadPart
-
             if (zipFile != null && zipFile.Length > 0)
             {
                 // Path for image storage
@@ -130,6 +100,38 @@ namespace EP._6._2A_Assignment.Controllers
             tempRepo.Clear();
 
             return RedirectToAction("Index", "Catalog");
+        }
+
+        // NEW METHOD: Generation of ZIP for download
+        [HttpGet]
+        public async Task<IActionResult> DownloadGeneratedZip(Guid restaurantId)
+        {
+            // Getting list of menu from the context
+            var items = await _context.MenuItems.Where(m => m.RestaurantId == restaurantId).ToListAsync();
+
+            if (!items.Any()) return BadRequest("No items found to generate zip file");
+
+            using (var ms = new MemoryStream())
+            {
+                using (var archive = new ZipArchive(ms, ZipArchiveMode.Create, true))
+                {
+                    foreach (var item in items)
+                    {
+                        var entry = archive.CreateEntry($"{item.Title}/default.jpg");
+                        var defaultImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "default.jpg");
+
+                        if (System.IO.File.Exists(defaultImagePath))
+                        {
+                            using (var entryStream = entry.Open())
+                            using (var fileStream = new FileStream(defaultImagePath, FileMode.Open, FileAccess.Read))
+                            {
+                                await fileStream.CopyToAsync(entryStream);
+                            }
+                        }
+                    }
+                }
+                return File(ms.ToArray(), "application/zip", "RestaurantImages.zip");
+            }
         }
     }
 }
